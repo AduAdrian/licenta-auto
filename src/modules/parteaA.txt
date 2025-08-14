@@ -1,0 +1,77 @@
+import { ProjectInput } from "../../../data/projectInput";
+
+// 3.1 Raza de rulare din anvelopă (Eq. 2.24–2.28)
+export function rollingRadius_m(tyre: string, pressure_bar: number): number {
+  // ex. "185/65 R14"
+  const m = tyre.match(/(\d{3})\/(\d{2})\s*R\s*(\d{2})/i);
+  if (!m) return 0.29; // fallback
+  const B = parseFloat(m[1]);        // lățime [mm]
+  const AR = parseFloat(m[2]) / 100; // aspect ratio
+  const rim_in = parseFloat(m[3]);   // jantă [inch]
+  const H = B * AR;                  // [mm]
+  const D_mm = rim_in * 25.4 + 2 * H;
+  const r0 = (D_mm / 1000) / 2;      // m
+  const lambda = pressure_bar >= 6 ? 0.947 : 0.935; // recomandat
+  return lambda * r0;
+}
+
+// 3.2 Coeficientul rezistenței la rulare f_r(V) – folosim tabelul Ex.3.1 (interpolare)
+const frTable = [
+  { v: 0,   fr: 0.0075 },
+  { v: 20,  fr: 0.0080 },
+  { v: 40,  fr: 0.0085 },
+  { v: 60,  fr: 0.0091 },
+  { v: 80,  fr: 0.0097 },
+  { v: 100, fr: 0.0106 },
+  { v: 120, fr: 0.0117 },
+  { v: 140, fr: 0.0133 },
+  { v: 160, fr: 0.0154 },
+  { v: 180, fr: 0.0183 },
+  { v: 185, fr: 0.0192 },
+];
+
+export function fr_fromTable(vKmh: number): number {
+  const t = frTable;
+  if (vKmh <= t[0].v) return t[0].fr;
+  for (let i = 1; i < t.length; i++) {
+    if (vKmh <= t[i].v) {
+      const a = t[i-1], b = t[i];
+      const k = (vKmh - a.v) / (b.v - a.v);
+      return a.fr + k * (b.fr - a.fr);
+    }
+  }
+  return t[t.length - 1].fr;
+}
+
+// 3.3 Rezistența la rulare Rr = f * Ga * cosα  (Eq. 3.12/3.14)
+export function rollingResistance_N(Ga_N: number, vKmh: number, alpha_deg: number): number {
+  const fr = fr_fromTable(vKmh);
+  const ca = Math.cos((alpha_deg * Math.PI) / 180);
+  return fr * Ga_N * ca;
+}
+
+// 3.4 Rezistența aerului Ra = 0.5 * ρ * cx * A * v^2  (Eq. 3.17)
+export function airResistance_N(rho: number, cx: number, A_m2: number, vKmh: number): number {
+  const v = vKmh / 3.6;
+  return 0.5 * rho * cx * A_m2 * v * v;
+}
+
+// 3.5 Rezistența la pantă Rp = Ga * p[%]   (Eq. 3.20, pentru pante mici)
+export function gradeResistance_N(Ga_N: number, p_percent: number): number {
+  return Ga_N * (p_percent / 100);
+}
+
+// 3.6 Rezistența la demarare Rd = ma * δ * dv/dt  (Eq. 3.22)
+// δ pentru autoturisme: δk = 1.04 + 0.0025 * ik^2 * i0^2  (Eq. 3.27)
+export function delta_autoturism(ik: number, i0: number): number {
+  return 1.04 + 0.0025 * (ik*ik) * (i0*i0);
+}
+
+export function accelResistance_N(ma_kg: number, delta: number, accel_mps2: number): number {
+  return ma_kg * delta * accel_mps2;
+}
+
+// 3.7 Aria frontală A ≈ B * H  (Eq. 3.18)
+export function frontalArea_m2(width_mm: number, height_mm: number): number {
+  return (width_mm/1000) * (height_mm/1000);
+}
