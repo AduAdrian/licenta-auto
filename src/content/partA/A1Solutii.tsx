@@ -6,6 +6,7 @@ export default function A1Solutii() {
   return (
     <>
       <h2>Soluții similare</h2>
+      <p>Date preluate din Macarie pentru comparație între modele M1.</p>
       <table className="placeholder" style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr>
