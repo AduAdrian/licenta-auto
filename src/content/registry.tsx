@@ -4,7 +4,6 @@ import A1Solutii from './partA/A1Solutii';
 import A2Parametri from './partA/A2Parametri';
 import A3Autopropulsare from './partA/A3Autopropulsare';
 import A4Tractiune from './partA/A4Tractiune';
--h
 type Entry = { prefix: string; Component: React.FC };
 
 const entries: Entry[] = [
