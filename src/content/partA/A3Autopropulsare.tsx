@@ -8,10 +8,19 @@ type Row = { v: number; Rr: number; Ra: number; Rtot: number };
 
 export default function A3Autopropulsare() {
   const rows: Row[] = useMemo(() => {
-    return SPEED_GRID_KMH.filter(v => v > 0).map(v => {
+    return SPEED_GRID_KMH.filter((v: number) => v > 0).map((v: number) => {
       const vMs = kmhToMs(v);
-      const Rr = rollingResistance(VEHICLE_BASE.m_kg, VEHICLE_BASE.f0, VEHICLE_BASE.alpha_deg);
-      const Ra = airResistance(vMs, VEHICLE_BASE.cx, VEHICLE_BASE.A_m2, VEHICLE_BASE.rho);
+      const Rr = rollingResistance(
+        VEHICLE_BASE.m_kg,
+        VEHICLE_BASE.f0,
+        VEHICLE_BASE.alpha_deg
+      );
+      const Ra = airResistance(
+        vMs,
+        VEHICLE_BASE.cx,
+        VEHICLE_BASE.A_m2,
+        VEHICLE_BASE.rho
+      );
       return { v, Rr, Ra, Rtot: Rr + Ra };
     });
   }, []);
